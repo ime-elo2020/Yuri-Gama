@@ -1,0 +1,26 @@
+void inicio();
+
+void (*isr[])()__attribute__ ((section(".vetor")))={ // Atribui o vetor de ponteiro de função a uma seção da memória
+        (void (*)())0x20020000;                      // Chamada do vetor (no final da RAM: endereço 0x20020000)
+        inicio
+};
+
+void inicio(){
+        *((int*)(0x40023800 + 0x30)) = 0x08;         // Habilitação de PORTD
+        *((int*)(0x40020C00 + 0x00)) = 0x01000000;   // PORTD em modo Output
+        *((int*)(0x40020C00 + 0x04)) = 0x00000000;   // PORTD em modo Push-pull
+        *((int*)(0x40020C00 + 0x08)) = 0x00000000;   // PORTD em modo Speed Low
+        *((int*)(0x40020C00 + 0x0C)) = 0x00000000;   // PORTD em modo No pull-up, pull-down
+        int ligado = 0x1000;                         //*
+        int desligado = 0x0000;                      // Atribuições de valores e definição de variável auxiliar
+        int i;                                       //* 
+        int *ptr = (int*)(0x40020C00 + 0x14);        // Cria um ponteiro que aponta para o endereço de ODR0
+loop:
+        i = 800000;                                  // Define o contador
+        *ptr = ligado;                               // 
+        while(i--);                                  // Deixa GPIOD em set enquanto o contador não zerar
+        *ptr = desligado;                            //
+        i = 800000;                                  // Restaura o contador
+        while(i--);                                  // Deixa GPIOD em reset enquanto o contador não zerar
+        goto loop;                                   // Volta para a label
+}
